@@ -1,0 +1,47 @@
+---
+title: "Project number 01"
+author: "Guibril Ramde"
+date: "2026-02-12"
+output: html_document
+---
+
+##Aproach
+The approach for this project begins with carefully examining and understanding the structure of the raw tournament data. After reviewing the file format, the tournamentinfo.txt file is downloaded and placed into the working directory to ensure reproducibility.
+
+The next step involves data cleaning. This includes removing separator lines, header information, and any content that is not relevant to the required analysis. Since each player’s information is distributed across two consecutive rows, the data is then structured by grouping every two rows as a single player record.
+
+From the first row, the following fields are extracted:
+
+Player number
+
+Player name
+
+Total points
+
+Opponent identification numbers
+
+From the second row, the following fields are extracted:
+
+Player’s state
+
+Player’s pre-tournament rating
+
+String manipulation functions such as str_split() and str_extract() are used to isolate and retrieve the relevant components from each row.
+
+After extracting the necessary information, a structured data frame is constructed containing all required variables. Finally, the average pre-tournament rating of each player’s opponents is calculated by matching opponent identification numbers to their corresponding ratings. The completed dataset is then exported as a .csv file for further use or potential database integration.
+
+
+```{r}
+info <- readLines("tournamentinfo.txt")
+head(info)
+```
+
+# process cleaning data
+
+```{r}
+clean_lines <- info[!grepl("^-", info)]
+
+clean_lines <- clean_lines[clean_lines != ""]
+
+head(clean_lines)
+```
