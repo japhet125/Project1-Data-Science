@@ -30,12 +30,19 @@ String manipulation functions such as str_split() and str_extract() are used to 
 
 After extracting the necessary information, a structured data frame is constructed containing all required variables. Finally, the average pre-tournament rating of each player’s opponents is calculated by matching opponent identification numbers to their corresponding ratings. The completed dataset is then exported as a .csv file for further use or potential database integration.
 
+**raw link from github**
 
 ```{r}
-info <- readLines("tournamentinfo.txt")
+file_local <- "tournamentinfo.txt"
+file_url <- "https://raw.githubusercontent.com/japhet125/Project1-Data-Science/refs/heads/main/tournamentinfo.txt"
+if (file.exists(file_local)){
+  info <- readLines(file_local)
+} else {
+  info <- readLines(file_url)
+}
+#info
 head(info)
 ```
-
 # process cleaning data
 
 ```{r}
@@ -44,4 +51,5 @@ clean_lines <- info[!grepl("^-", info)]
 clean_lines <- clean_lines[clean_lines != ""]
 
 head(clean_lines)
+#clean_lines
 ```
