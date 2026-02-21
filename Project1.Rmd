@@ -44,7 +44,6 @@ if (file.exists(file_local)){
 head(info)
 ```
 # process cleaning data
-
 ```{r}
 clean_lines <- info[!grepl("^-", info)]
 
@@ -53,3 +52,111 @@ clean_lines <- clean_lines[clean_lines != ""]
 head(clean_lines)
 #clean_lines
 ```
+
+#cleaning data removing header
+```{r}
+clean_lines <- clean_lines[!grepl("^\\s*Pair", clean_lines)]
+clean_lines <- clean_lines[!grepl("^\\s*Num", clean_lines)]
+head(clean_lines, 4)
+```
+#group every two rows
+```{r}
+player_blocks <- split(clean_lines, ceiling(seq_along(clean_lines)/2))
+player_blocks[[1]]
+```
+#Extracting fields from players
+```{r}
+library(stringr)
+block <- player_blocks[[1]]
+row1 <- block[1]
+row2 <- block[2]
+```
+#Extracting player number
+```{r}
+player_num <- str_extract(row1, "^\\s*\\d+")
+player_num
+```
+#Extracting player name
+```{r}
+name <- str_trim(str_extract(row1, "(?<=\\| ).*?(?=\\s+\\|)"))
+name
+
+```
+#Extracting total Points
+
+```{r}
+points <- str_extract(row1, "\\d+\\.\\d")
+points
+```
+
+#Extracting state
+```{r}
+state <- str_extract(row2, "^[^|]+")
+state
+```
+
+#Extracting pre-rating
+
+```{r}
+pre_rating <- str_extract(row2, "R:\\s*\\d+")
+pre_rating
+```
+
+#building the data frame
+
+```{r}
+players_df <- data.frame()
+for (block in player_blocks) {
+  row1 <- block[1]
+  row2 <- block[2]
+  
+  player_num <- as.numeric(str_extract(row1, "^\\s*\\d+"))
+  
+  name <- str_trim(str_extract(row1, "(?<=\\| ).*?(?=\\s+\\|)"))
+  
+  points <- as.numeric(str_extract(row1, "\\d+\\.\\d"))
+  
+  state <- str_trim(str_extract(row2, "^[^|]+"))
+  
+  pre_rating <- str_extract(row2, "R:\\s*\\d+")
+  pre_rating <- as.numeric(str_extract(pre_rating, "\\d+"))
+  
+  opponents <- str_extract_all(row1, "(?<=\\s)\\d{1,2}(?=\\|)")[[1]]
+  opponents <- as.numeric(opponents)
+  
+  players_df <- rbind(players_df, data.frame(
+    player_num,
+    name,
+    state,
+    points,
+    pre_rating,
+    opponents = I(list(opponents))
+  ))
+  
+}
+head(players_df)
+```
+# calculating the average opponent pre-rating
+```{r}
+players_df$avg_opponent_rating <- sapply(players_df$opponents, function(opp_ids) {
+  opp_ratings <- players_df$pre_rating[
+    players_df$player_num %in% opp_ids
+  ]
+  mean(opp_ratings)
+})
+players_df$avg_opponent_rating <- round(players_df$avg_opponent_rating, 0)
+players_df[1, ]
+
+```
+
+#Exporting it to a .csv file
+
+```{r}
+write.csv(
+  players_df[, c("name", "state", "points", "pre_rating", "avg_opponent_rating")],
+  "tournamentinfo_results.csv",
+  row.names = FALSE
+)
+```
+
+
